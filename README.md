@@ -288,7 +288,7 @@ Most alternatives behave like thin connectors. NewsAI is designed as a news inte
 Yes. Add the MCP config to Claude Desktop and Claude can call the news tools whenever a prompt requires current events.
 
 **Is there a free tier?**
-Yes. It is free to use with Google sign-in. If you are building an autonomous agent or pipeline that needs API-key access instead of OAuth, contact [feedback@newzai.ai](mailto:feedback@newzai.ai).
+Yes. It is free to use with Google sign-in. If you are building an autonomous agent or pipeline that needs API-key access instead of OAuth, contact [admin@newzai.ai](mailto:admin@newzai.ai).
 
 **What regions are supported?**
 India, United States, United Kingdom, Japan, Australia, Canada, and Germany.
