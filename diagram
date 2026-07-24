@@ -1,31 +1,45 @@
 sequenceDiagram
     actor User
     participant Frontend
-    participant AgentService as Agent Service
+    participant AgentService@{ "type": "boundary"} as Agent Service
     participant Repository
+    participant Orchestrator@{"type":"control"}
     participant FileSelector as File Selector Agent
-    participant DeepScan as Deep Scan Agents
+    participant DeepScan as Scan Agents
     participant Models as Chinou Models
-    participant Store as A2A Task Store
+    participant Store@{"type":"database"} as A2A Task Store
 
     User->>Frontend: Provide repository name and custom prompt
-    Frontend->>AgentService: Start security scan
+    Frontend->>AgentService: POST /a2a Start security scan
 
-    AgentService->>Repository: Temporarily clone repository
-    Repository-->>AgentService: Return repository files
+    AgentService->>Repository: Clone repository
+    Repository-->>AgentService: Return repository files index
 
-    AgentService->>FileSelector: Select potentially vulnerable files
-    FileSelector-->>AgentService: Return top 50 files
+    AgentService->>Orchestrator: File Index
+    Orchestrator->>Store: Store Initial request & file index
+    Store-->>Orchestrator: Task ID
+    Orchestrator-->>AgentService:
+    AgentService-->>Frontend: Task ID
 
-    loop For each selected file
-        loop Run each security agent
-            AgentService->>DeepScan: Analyze file using custom prompt
-            Note over DeepScan: Recon Agent<br/>Taint Agent<br/>Patterns Agent<br/>Logic Agent<br/>Dependency Scan Agent
+    Orchestrator->>FileSelector: Select potentially vulnerable files
+    FileSelector->>Models: Get Vunerable files(Max 50)
+    Models-->>FileSelector:
+    FileSelector-->>Orchestrator: Return top 50 files
+    Orchestrator-->>AgentService: 
+    AgentService-->>Frontend: 50 files + content
+
+    loop For each agent (recon, taint, pattern, logic, deep)
+        par For each selected file (1 -> 50)
+            Orchestrator->>DeepScan: Analyze file using custom prompt
             DeepScan->>Models: Perform deep vulnerability analysis
             Models-->>DeepScan: Return findings
-            DeepScan->>Store: Store agent artifacts
+            DeepScan-->>Orchestrator: 
+            Orchestrator->>Store: Store agent response artifacts
+            Orchestrator-->>AgentService: 
+            AgentService-->>Frontend: Scan Result for phase+file
         end
     end
 
-    AgentService-->>Frontend: Return final scan results
+    Orchestrator-->>Frontend: Return final scan results
+    Frontend->>Frontend: Summary generation
     Frontend-->>User: Display vulnerabilities
