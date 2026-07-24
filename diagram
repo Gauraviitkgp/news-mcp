@@ -31,7 +31,7 @@ sequenceDiagram
     loop For each agent (recon, taint, pattern, logic, deep)
         par For each selected file (1 -> 50)
             Orchestrator->>DeepScan: Analyze file using custom prompt
-            DeepScan->>Models: Perform deep vulnerability analysis
+            DeepScan->>Models: Perform analysis based on prompts
             Models-->>DeepScan: Return findings
             DeepScan-->>Orchestrator: 
             Orchestrator->>Store: Store agent response artifacts
