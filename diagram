@@ -4,26 +4,28 @@ sequenceDiagram
     participant AgentService as Agent Service
     participant Repository
     participant FileSelector as File Selector Agent
-    participant Agents as Security Agents
+    participant DeepScan as Deep Scan Agents
     participant Models as Chinou Models
     participant Store as A2A Task Store
 
-    User->>Frontend: Submit repository name
+    User->>Frontend: Provide repository name and custom prompt
     Frontend->>AgentService: Start security scan
 
     AgentService->>Repository: Temporarily clone repository
-    Repository-->>AgentService: Repository files
+    Repository-->>AgentService: Return repository files
 
-    AgentService->>FileSelector: Select vulnerable files
-    FileSelector-->>AgentService: Top 50 files
+    AgentService->>FileSelector: Select potentially vulnerable files
+    FileSelector-->>AgentService: Return top 50 files
 
-    AgentService->>Agents: Send selected files
+    loop For each selected file
+        loop Run each security agent
+            AgentService->>DeepScan: Analyze file using custom prompt
+            Note over DeepScan: Recon Agent<br/>Taint Agent<br/>Patterns Agent<br/>Logic Agent<br/>Dependency Scan Agent
+            DeepScan->>Models: Perform deep vulnerability analysis
+            Models-->>DeepScan: Return findings
+            DeepScan->>Store: Store agent artifacts
+        end
+    end
 
-    Note over Agents: Recon Agent<br/>Taint Agent<br/>Patterns Agent<br/>Logic Agent<br/>Dependency Scan Agent
-
-    Agents->>Models: Analyze files
-    Models-->>Agents: Vulnerability findings
-
-    Agents->>Store: Store phase artifacts
-    AgentService-->>Frontend: Return scan results
+    AgentService-->>Frontend: Return final scan results
     Frontend-->>User: Display vulnerabilities
