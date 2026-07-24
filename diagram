@@ -1,0 +1,29 @@
+sequenceDiagram
+    actor User
+    participant Frontend
+    participant AgentService as Agent Service
+    participant Repository
+    participant FileSelector as File Selector Agent
+    participant Agents as Security Agents
+    participant Models as Chinou Models
+    participant Store as A2A Task Store
+
+    User->>Frontend: Submit repository name
+    Frontend->>AgentService: Start security scan
+
+    AgentService->>Repository: Temporarily clone repository
+    Repository-->>AgentService: Repository files
+
+    AgentService->>FileSelector: Select vulnerable files
+    FileSelector-->>AgentService: Top 50 files
+
+    AgentService->>Agents: Send selected files
+
+    Note over Agents: Recon Agent<br/>Taint Agent<br/>Patterns Agent<br/>Logic Agent<br/>Dependency Scan Agent
+
+    Agents->>Models: Analyze files
+    Models-->>Agents: Vulnerability findings
+
+    Agents->>Store: Store phase artifacts
+    AgentService-->>Frontend: Return scan results
+    Frontend-->>User: Display vulnerabilities
