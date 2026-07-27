@@ -1,45 +1,63 @@
-sequenceDiagram
+title LLM-Based Vulnerability Scanning Workflow
+
+autonumber 1
+
+participantgroup #lightblue **Interface**
     actor User
-    participant Frontend
-    participant AgentService@{ "type": "boundary"} as Agent Service
-    participant Repository
-    participant Orchestrator@{"type":"control"}
-    participant FileSelector as File Selector Agent
-    participant DeepScan as Scan Agents
-    participant Models as Chinou Models
-    participant Store@{"type":"database"} as A2A Task Store
+    boundary Frontend
+end
 
-    User->>Frontend: Provide repository name and custom prompt
-    Frontend->>AgentService: POST /a2a Start security scan
+participantgroup #lightgreen **Agent System**
+    boundary "Agent Service" as AgentService
+    control Orchestrator
+    control "File Selector Agent" as FileSelector
+    control "Scan Agents" as ScanAgents
+    database "A2A Task Store" as Store
+end
 
-    AgentService->>Repository: Clone repository
-    Repository-->>AgentService: Return repository files index
+participantgroup #lightgray **Repository**
+    entity Repository
+end
 
-    AgentService->>Orchestrator: File Index
-    Orchestrator->>Store: Store Initial request & file index
-    Store-->>Orchestrator: Task ID
-    Orchestrator-->>AgentService:
-    AgentService-->>Frontend: Task ID
+participantgroup #lightyellow **External Entity**
+    entity "Chinou Models" as Models
+end
 
-    Orchestrator->>FileSelector: Select potentially vulnerable files
-    FileSelector->>Models: Get Vunerable files(Max 50)
-    Models-->>FileSelector:
-    FileSelector-->>Orchestrator: Return top 50 files
-    Orchestrator-->>AgentService: 
-    AgentService-->>Frontend: 50 files + content
+User->Frontend: Provide repository name\nand custom prompt
+Frontend->AgentService: POST /a2a\nStart security scan
 
-    loop For each agent (recon, taint, pattern, logic, deep)
-        par For each selected file (1 -> 50)
-            Orchestrator->>DeepScan: Analyze file using custom prompt
-            DeepScan->>Models: Perform analysis based on prompts
-            Models-->>DeepScan: Return findings
-            DeepScan-->>Orchestrator: 
-            Orchestrator->>Store: Store agent response artifacts
-            Orchestrator-->>AgentService: 
-            AgentService-->>Frontend: Scan Result for phase+file
-        end
+AgentService->Repository: Clone repository
+Repository-->AgentService: Return repository file index
+
+AgentService->Orchestrator: Send file index
+Orchestrator->Store: Store initial request\nand file index
+Store-->Orchestrator: Return task ID
+Orchestrator-->AgentService: Return task ID
+AgentService-->Frontend: Return task ID
+
+Orchestrator->FileSelector: Select potentially\nvulnerable files
+FileSelector->Models: Identify and rank vulnerable files\nMaximum 50 files
+Models-->FileSelector: Return ranked file list
+FileSelector-->Orchestrator: Return top 50 files
+Orchestrator-->AgentService: Return selected files
+AgentService-->Frontend: Stream selected files\nand file content
+
+loop For each scan agent\nRecon, Taint, Pattern, Logic and Deep Scan
+    par For each selected file\n1 to 50
+        Orchestrator->ScanAgents: Analyze file using\ncustom prompt
+        ScanAgents->Models: Perform vulnerability analysis
+        Models-->ScanAgents: Return findings
+        ScanAgents-->Orchestrator: Return scan artifacts
+
+        Orchestrator->Store: Store phase and file artifacts
+        Orchestrator-->AgentService: Return phase result
+        AgentService-->Frontend: Stream result for\nphase and file
     end
+end
 
-    Orchestrator-->>Frontend: Return final scan results
-    Frontend->>Frontend: Summary generation
-    Frontend-->>User: Display vulnerabilities
+Orchestrator->Store: Store final scan results
+Orchestrator-->AgentService: Return final scan results
+AgentService-->Frontend: Stream scan completion
+
+Frontend->Frontend: Generate vulnerability summary
+Frontend-->User: Display vulnerabilities
