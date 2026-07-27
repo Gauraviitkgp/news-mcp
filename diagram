@@ -1,63 +1,63 @@
-title LLM-Based Vulnerability Scanning Workflow
+title <size:16>LLM-Based Vulnerability Scanning Workflow</size>
 
 autonumber 1
 
-participantgroup #lightblue **Interface**
-    actor User
-    boundary Frontend
+participantgroup #lightblue <size:16>**Interface**</size>
+    actor "<size:16>User</size>" as User
+    boundary "<size:16>Frontend</size>" as Frontend
 end
 
-participantgroup #lightgreen **Agent System**
-    boundary "Agent Service" as AgentService
-    control Orchestrator
-    control "File Selector Agent" as FileSelector
-    control "Scan Agents" as ScanAgents
-    database "A2A Task Store" as Store
+participantgroup #lightgreen <size:16>**Agent System**</size>
+    boundary "<size:16>Agent Service</size>" as AgentService
+    control "<size:16>Orchestrator</size>" as Orchestrator
+    control "<size:16>File Selector Agent</size>" as FileSelector
+    control "<size:16>Scan Agents</size>" as ScanAgents
+    database "<size:16>A2A Task Store</size>" as Store
 end
 
-participantgroup #lightgray **Repository**
-    entity Repository
+participantgroup #lightgray <size:16>**Repository**</size>
+    entity "<size:16>Repository</size>" as Repository
 end
 
-participantgroup #lightyellow **External Entity**
-    entity "Chinou Models" as Models
+participantgroup #lightyellow <size:16>**External Entity**</size>
+    entity "<size:16>Chinou Models</size>" as Models
 end
 
-User->Frontend: Provide repository name\nand custom prompt
-Frontend->AgentService: POST /a2a\nStart security scan
+User->Frontend: <size:16>Provide repository name\nand custom prompt</size>
+Frontend->AgentService: <size:16>POST /a2a\nStart security scan</size>
 
-AgentService->Repository: Clone repository
-Repository-->AgentService: Return repository file index
+AgentService->Repository: <size:16>Clone repository</size>
+Repository-->AgentService: <size:16>Return repository file index</size>
 
-AgentService->Orchestrator: Send file index
-Orchestrator->Store: Store initial request\nand file index
-Store-->Orchestrator: Return task ID
-Orchestrator-->AgentService: Return task ID
-AgentService-->Frontend: Return task ID
+AgentService->Orchestrator: <size:16>Send file index</size>
+Orchestrator->Store: <size:16>Store initial request\nand file index</size>
+Store-->Orchestrator: <size:16>Return task ID</size>
+Orchestrator-->AgentService: <size:16>Return task ID</size>
+AgentService-->Frontend: <size:16>Return task ID</size>
 
-Orchestrator->FileSelector: Select potentially\nvulnerable files
-FileSelector->Models: Identify and rank vulnerable files\nMaximum 50 files
-Models-->FileSelector: Return ranked file list
-FileSelector-->Orchestrator: Return top 50 files
-Orchestrator-->AgentService: Return selected files
-AgentService-->Frontend: Stream selected files\nand file content
+Orchestrator->FileSelector: <size:16>Select potentially\nvulnerable files</size>
+FileSelector->Models: <size:16>Identify and rank vulnerable files\nMaximum 50 files</size>
+Models-->FileSelector: <size:16>Return ranked file list</size>
+FileSelector-->Orchestrator: <size:16>Return top 50 files</size>
+Orchestrator-->AgentService: <size:16>Return selected files</size>
+AgentService-->Frontend: <size:16>Stream selected files\nand file content</size>
 
-loop For each scan agent\nRecon, Taint, Pattern, Logic and Deep Scan
-    par For each selected file\n1 to 50
-        Orchestrator->ScanAgents: Analyze file using\ncustom prompt
-        ScanAgents->Models: Perform vulnerability analysis
-        Models-->ScanAgents: Return findings
-        ScanAgents-->Orchestrator: Return scan artifacts
+loop <size:16>For each scan agent\nRecon, Taint, Pattern, Logic and Deep Scan</size>
+    par <size:16>For each selected file\n1 to 50</size>
+        Orchestrator->ScanAgents: <size:16>Analyze file using\ncustom prompt</size>
+        ScanAgents->Models: <size:16>Perform vulnerability analysis</size>
+        Models-->ScanAgents: <size:16>Return findings</size>
+        ScanAgents-->Orchestrator: <size:16>Return scan artifacts</size>
 
-        Orchestrator->Store: Store phase and file artifacts
-        Orchestrator-->AgentService: Return phase result
-        AgentService-->Frontend: Stream result for\nphase and file
+        Orchestrator->Store: <size:16>Store phase and file artifacts</size>
+        Orchestrator-->AgentService: <size:16>Return phase result</size>
+        AgentService-->Frontend: <size:16>Stream result for\nphase and file</size>
     end
 end
 
-Orchestrator->Store: Store final scan results
-Orchestrator-->AgentService: Return final scan results
-AgentService-->Frontend: Stream scan completion
+Orchestrator->Store: <size:16>Store final scan results</size>
+Orchestrator-->AgentService: <size:16>Return final scan results</size>
+AgentService-->Frontend: <size:16>Stream scan completion</size>
 
-Frontend->Frontend: Generate vulnerability summary
-Frontend-->User: Display vulnerabilities
+Frontend->Frontend: <size:16>Generate vulnerability summary</size>
+Frontend-->User: <size:16>Display vulnerabilities</size>
